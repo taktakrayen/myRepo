@@ -1,0 +1,194 @@
+{% extends 'magasin/base.html' %}
+{% block title %}Paiement — Mon Magasin{% endblock %}
+{% block content %}
+<div class="container mt-4" style="max-width:900px;">
+
+  <!-- Étapes -->
+  <div class="d-flex align-items-center justify-content-center mb-4 gap-0">
+    <div class="text-center">
+      <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto fw-bold" style="width:36px;height:36px;"><i class="bi bi-check"></i></div>
+      <small class="text-success fw-semibold">Livraison</small>
+    </div>
+    <div style="height:2px;width:80px;background:#198754;"></div>
+    <div class="text-center">
+      <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto fw-bold" style="width:36px;height:36px;">2</div>
+      <small class="text-primary fw-semibold">Paiement</small>
+    </div>
+    <div style="height:2px;width:80px;background:#dee2e6;"></div>
+    <div class="text-center">
+      <div class="rounded-circle bg-light text-muted d-flex align-items-center justify-content-center mx-auto" style="width:36px;height:36px;">3</div>
+      <small class="text-muted">Confirmation</small>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-danger"><i class="bi bi-exclamation-circle me-2"></i>{{ error }}</div>
+  {% endif %}
+
+  <!-- Adresse choisie -->
+  <div class="alert alert-light border d-flex align-items-start gap-3 mb-4 rounded-3">
+    <i class="bi bi-geo-alt-fill text-primary mt-1" style="font-size:1.3rem;"></i>
+    <div>
+      <div class="fw-semibold">{{ commande.adresse_livraison.nom_complet }}</div>
+      <div class="text-muted small">{{ commande.adresse_livraison.adresse }}, {{ commande.adresse_livraison.ville }} {{ commande.adresse_livraison.code_postal }}</div>
+      <div class="text-muted small"><i class="bi bi-telephone me-1"></i>{{ commande.adresse_livraison.telephone }}</div>
+    </div>
+    <a href="{% url 'checkout_livraison' %}" class="ms-auto btn btn-sm btn-outline-secondary">Modifier</a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-7">
+      <h5 class="fw-bold mb-3"><i class="bi bi-credit-card me-2 text-primary"></i>Mode de paiement</h5>
+
+      <form method="POST" id="paiementForm">
+        {% csrf_token %}
+
+        <!-- Options de paiement -->
+        <div class="d-flex flex-column gap-3 mb-4">
+
+          <!-- Carte bancaire -->
+          <div class="card border rounded-3 p-0 paiement-option" data-mode="carte">
+            <div class="card-body p-3">
+              <div class="form-check d-flex align-items-center gap-3">
+                <input class="form-check-input" type="radio" name="mode_paiement" id="carte" value="carte" onchange="afficherSection('carte')">
+                <label class="form-check-label d-flex align-items-center gap-2 w-100" for="carte">
+                  <span style="font-size:1.4rem;">💳</span>
+                  <div>
+                    <div class="fw-semibold">Carte bancaire</div>
+                    <div class="text-muted small">Visa, Mastercard, CB</div>
+                  </div>
+                  <div class="ms-auto d-flex gap-1">
+                    <img src="https://cdn.jsdelivr.net/npm/payment-icons@1.0.0/min/flat/visa.svg" height="24">
+                    <img src="https://cdn.jsdelivr.net/npm/payment-icons@1.0.0/min/flat/mastercard.svg" height="24">
+                  </div>
+                </label>
+              </div>
+
+              <!-- Champs carte -->
+              <div id="section-carte" class="mt-3 pt-3 border-top" style="display:none;">
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold">Numéro de carte</label>
+                  <input type="text" name="carte_numero" class="form-control" placeholder="1234 5678 9012 3456"
+                         maxlength="19" oninput="formatCarte(this)">
+                </div>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">Date d'expiration</label>
+                    <input type="text" name="carte_expiry" class="form-control" placeholder="MM/AA" maxlength="5" oninput="formatExpiry(this)">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small fw-semibold">CVV</label>
+                    <input type="text" name="carte_cvv" class="form-control" placeholder="123" maxlength="4">
+                  </div>
+                </div>
+                <div class="mt-2">
+                  <label class="form-label small fw-semibold">Nom sur la carte</label>
+                  <input type="text" name="carte_nom" class="form-control" placeholder="PRENOM NOM">
+                </div>
+                <div class="alert alert-info mt-3 py-2 small">
+                  <i class="bi bi-shield-lock me-1"></i> Paiement <strong>simulé</strong> — Aucune donnée réelle n'est collectée.
+                  <br>Utilisez n'importe quel numéro valide (ex: 4111 1111 1111 1111).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Paiement à la livraison -->
+          <div class="card border rounded-3 p-0 paiement-option" data-mode="especes">
+            <div class="card-body p-3">
+              <div class="form-check d-flex align-items-center gap-3">
+                <input class="form-check-input" type="radio" name="mode_paiement" id="especes" value="especes" onchange="afficherSection('especes')">
+                <label class="form-check-label d-flex align-items-center gap-2 w-100" for="especes">
+                  <span style="font-size:1.4rem;">💵</span>
+                  <div>
+                    <div class="fw-semibold">Paiement à la livraison</div>
+                    <div class="text-muted small">Payez en espèces à la réception</div>
+                  </div>
+                </label>
+              </div>
+              <div id="section-especes" class="mt-2 pt-2 border-top" style="display:none;">
+                <div class="alert alert-warning py-2 small mb-0">
+                  <i class="bi bi-info-circle me-1"></i> Vous paierez <strong>{{ commande.total }} DT</strong> en espèces au livreur.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Virement -->
+          <div class="card border rounded-3 p-0 paiement-option" data-mode="virement">
+            <div class="card-body p-3">
+              <div class="form-check d-flex align-items-center gap-3">
+                <input class="form-check-input" type="radio" name="mode_paiement" id="virement" value="virement" onchange="afficherSection('virement')">
+                <label class="form-check-label d-flex align-items-center gap-2 w-100" for="virement">
+                  <span style="font-size:1.4rem;">🏦</span>
+                  <div>
+                    <div class="fw-semibold">Virement bancaire</div>
+                    <div class="text-muted small">Virement avant expédition</div>
+                  </div>
+                </label>
+              </div>
+              <div id="section-virement" class="mt-2 pt-2 border-top" style="display:none;">
+                <div class="alert alert-info py-2 small mb-0">
+                  <i class="bi bi-bank me-1"></i> RIB : <strong>TN59 1234 5678 9012 3456 7890</strong><br>
+                  Référence : votre nom complet
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100 fw-semibold btn-lg">
+          <i class="bi bi-lock me-2"></i>Confirmer la commande — {{ commande.total }} DT
+        </button>
+        <a href="{% url 'panier' %}" class="btn btn-outline-secondary w-100 mt-2">
+          <i class="bi bi-arrow-left me-1"></i>Retour au panier
+        </a>
+      </form>
+    </div>
+
+    <!-- Résumé -->
+    <div class="col-md-5">
+      <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top:80px;">
+        <h6 class="fw-bold mb-3">Résumé</h6>
+        {% for ligne in commande.lignecommande_set.all %}
+        <div class="d-flex justify-content-between mb-1 small">
+          <span class="text-muted">{{ ligne.produit.libelle }} x{{ ligne.quantite }}</span>
+          <span>{{ ligne.sous_total }} DT</span>
+        </div>
+        {% endfor %}
+        <hr>
+        <div class="d-flex justify-content-between small text-muted mb-1">
+          <span>Sous-total</span><span>{{ commande.total_produits }} DT</span>
+        </div>
+        <div class="d-flex justify-content-between small text-muted mb-1">
+          <span><i class="bi bi-truck me-1"></i>Livraison</span><span>{{ commande.frais_livraison }} DT</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between fw-bold fs-5">
+          <span>Total</span><span class="text-success">{{ commande.total }} DT</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function afficherSection(mode) {
+  ['carte','especes','virement'].forEach(m => {
+    document.getElementById('section-' + m).style.display = m === mode ? 'block' : 'none';
+  });
+  document.querySelectorAll('.paiement-option').forEach(el => {
+    el.classList.toggle('border-primary', el.dataset.mode === mode);
+  });
+}
+function formatCarte(el) {
+  let v = el.value.replace(/\D/g, '').substring(0, 16);
+  el.value = v.replace(/(.{4})/g, '$1 ').trim();
+}
+function formatExpiry(el) {
+  let v = el.value.replace(/\D/g, '').substring(0, 4);
+  if (v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2);
+  el.value = v;
+}
+</script>
+{% endblock %}

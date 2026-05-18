@@ -1,0 +1,134 @@
+{% extends 'magasin/base.html' %}
+{% block title %}Commande confirmée — Mon Magasin{% endblock %}
+{% block content %}
+<div class="container mt-5" style="max-width:700px;">
+  <div class="card border-0 shadow rounded-4 overflow-hidden">
+
+    <!-- Header -->
+    <div class="p-4 text-white text-center" style="background:linear-gradient(135deg,#28a745,#20c997);">
+      <div style="font-size:4rem;">✅</div>
+      <h3 class="fw-bold mt-2 mb-1">Commande confirmée !</h3>
+      <p class="opacity-75 mb-0">Merci <strong>{{ request.user.username }}</strong> pour votre achat</p>
+    </div>
+
+    <div class="p-4">
+
+      <!-- Info commande -->
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <div class="bg-light rounded-3 p-3 text-center">
+            <div class="text-muted small">Numéro de commande</div>
+            <div class="fw-bold">#{{ commande.id }}</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="bg-light rounded-3 p-3 text-center">
+            <div class="text-muted small">N° de suivi</div>
+            <div class="fw-bold text-primary">{{ commande.numero_suivi }}</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="bg-light rounded-3 p-3 text-center">
+            <div class="text-muted small">Date</div>
+            <div class="fw-bold">{{ commande.dateCde }}</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="bg-light rounded-3 p-3 text-center">
+            <div class="text-muted small">Statut</div>
+            <span class="badge {% if commande.statut == 'payee' %}bg-success{% else %}bg-warning text-dark{% endif %} fs-6">
+              {{ commande.get_statut_display }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode paiement -->
+      <div class="alert {% if commande.mode_paiement == 'carte' %}alert-success{% else %}alert-warning{% endif %} rounded-3 mb-4">
+        <div class="fw-semibold mb-1">
+          {% if commande.mode_paiement == 'carte' %}💳 Paiement par carte — confirmé
+          {% elif commande.mode_paiement == 'especes' %}💵 Paiement à la livraison
+          {% else %}🏦 Virement bancaire en attente
+          {% endif %}
+        </div>
+        {% if commande.mode_paiement == 'especes' %}
+        <small>Préparez <strong>{{ commande.total }} DT</strong> en espèces pour le livreur.</small>
+        {% elif commande.mode_paiement == 'virement' %}
+        <small>Virement attendu de <strong>{{ commande.total }} DT</strong> — RIB: TN59 1234 5678 9012 3456 7890</small>
+        {% endif %}
+      </div>
+
+      <!-- Adresse livraison -->
+      {% if commande.adresse_livraison %}
+      <div class="card border rounded-3 mb-4">
+        <div class="card-body py-3">
+          <h6 class="fw-bold mb-2"><i class="bi bi-truck text-primary me-2"></i>Livraison à domicile</h6>
+          <div class="fw-semibold">{{ commande.adresse_livraison.nom_complet }}</div>
+          <div class="text-muted small">{{ commande.adresse_livraison.adresse }}</div>
+          <div class="text-muted small">{{ commande.adresse_livraison.ville }} {{ commande.adresse_livraison.code_postal }}</div>
+          <div class="text-muted small"><i class="bi bi-telephone me-1"></i>{{ commande.adresse_livraison.telephone }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Produits commandés -->
+      <h6 class="fw-bold mb-2">Articles commandés</h6>
+      <div class="card border-0 bg-light rounded-3 mb-4">
+        <div class="card-body py-2">
+          {% for ligne in commande.lignecommande_set.all %}
+          <div class="d-flex justify-content-between py-2 border-bottom border-white">
+            <span>{{ ligne.produit.libelle }} <span class="text-muted">×{{ ligne.quantite }}</span></span>
+            <span class="fw-semibold">{{ ligne.sous_total }} DT</span>
+          </div>
+          {% endfor %}
+          <div class="d-flex justify-content-between py-2 text-muted small">
+            <span>Frais de livraison</span>
+            <span>{{ commande.frais_livraison }} DT</span>
+          </div>
+          <div class="d-flex justify-content-between py-2 fw-bold border-top border-secondary border-opacity-25 mt-1">
+            <span>Total</span>
+            <span class="text-success">{{ commande.total }} DT</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline livraison simulée -->
+      <h6 class="fw-bold mb-3"><i class="bi bi-map me-2 text-primary"></i>Suivi de livraison (simulé)</h6>
+      <div class="position-relative ps-4" style="border-left:2px solid #dee2e6;">
+        {% if commande.statut == 'payee' %}
+        <div class="mb-3 position-relative">
+          <div class="position-absolute rounded-circle bg-success" style="width:12px;height:12px;left:-23px;top:4px;"></div>
+          <div class="fw-semibold small">✅ Commande confirmée</div>
+          <div class="text-muted" style="font-size:.8rem;">{{ commande.dateCde }}</div>
+        </div>
+        <div class="mb-3 position-relative">
+          <div class="position-absolute rounded-circle bg-light border" style="width:12px;height:12px;left:-23px;top:4px;"></div>
+          <div class="text-muted small">📦 En préparation (estimé : 1-2 jours)</div>
+        </div>
+        <div class="mb-3 position-relative">
+          <div class="position-absolute rounded-circle bg-light border" style="width:12px;height:12px;left:-23px;top:4px;"></div>
+          <div class="text-muted small">🚚 En cours de livraison (estimé : 3-5 jours)</div>
+        </div>
+        <div class="position-relative">
+          <div class="position-absolute rounded-circle bg-light border" style="width:12px;height:12px;left:-23px;top:4px;"></div>
+          <div class="text-muted small">🏠 Livraison à domicile</div>
+        </div>
+        {% else %}
+        <div class="mb-3 position-relative">
+          <div class="position-absolute rounded-circle bg-warning" style="width:12px;height:12px;left:-23px;top:4px;"></div>
+          <div class="fw-semibold small">⏳ En attente de paiement</div>
+          <div class="text-muted" style="font-size:.8rem;">La commande sera traitée après réception du paiement</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Boutons -->
+      <div class="d-flex gap-2 mt-4">
+        <a href="{% url 'vitrine' %}" class="btn btn-primary flex-grow-1">
+          <i class="bi bi-shop me-1"></i>Continuer mes achats
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

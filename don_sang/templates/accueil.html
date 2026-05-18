@@ -1,0 +1,16 @@
+{% extends "magasin/base.html" %}
+{% block title %}Don de Sang{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2>🩸 Don de Sang</h2>
+  <a href="{% url 'faire_don' %}" class="btn btn-danger mb-3">Je veux donner mon sang</a>
+  <table class="table table-bordered">
+    <thead><tr><th>Donneur</th><th>Groupe</th><th>Ville</th><th>Date</th></tr></thead>
+    <tbody>
+      {% for d in dons %}
+      <tr><td>{{ d.donneur.username }}</td><td>{{ d.groupe_sanguin }}</td><td>{{ d.ville }}</td><td>{{ d.date_don }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

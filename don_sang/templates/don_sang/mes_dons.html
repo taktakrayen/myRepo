@@ -1,0 +1,47 @@
+{% extends 'don_sang/base.html' %}
+{% block title %}Mes Dons{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">📋 Mes dons de sang</h4>
+    <a href="{% url 'faire_don' %}" class="btn btn-blood"><i class="bi bi-plus-circle me-1"></i> Nouveau don</a>
+  </div>
+  {% if dons %}
+  <div class="row g-3">
+    {% for don in dons %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge bg-danger fs-5 px-3">{{ don.groupe_sanguin }}</span>
+            {% if don.disponibilite == 'disponible' %}
+              <span class="badge badge-dispo-disponible">✅ Disponible</span>
+            {% elif don.disponibilite == 'indisponible' %}
+              <span class="badge badge-dispo-indisponible">❌ Indisponible</span>
+            {% else %}
+              <span class="badge badge-dispo-bientot">⏳ Bientôt</span>
+            {% endif %}
+          </div>
+          <p class="mb-1"><i class="bi bi-geo-alt text-muted me-1"></i> {{ don.ville }}</p>
+          <p class="mb-1"><i class="bi bi-telephone text-muted me-1"></i> {{ don.telephone }}</p>
+          <p class="mb-1"><i class="bi bi-person text-muted me-1"></i> {{ don.age }} ans</p>
+          <p class="mb-2 text-muted small"><i class="bi bi-calendar me-1"></i> {{ don.date_don }}</p>
+          {% if don.message %}<p class="small fst-italic text-muted">"{{ don.message }}"</p>{% endif %}
+          <div class="d-flex gap-2 mt-2">
+            <a href="{% url 'modifier_don' don.id %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i> Modifier</a>
+            <a href="{% url 'supprimer_don' don.id %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Supprimer</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <div style="font-size:3rem;">🩸</div>
+    <p class="mt-2">Vous n'avez pas encore enregistré de don.</p>
+    <a href="{% url 'faire_don' %}" class="btn btn-blood">Faire mon premier don</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

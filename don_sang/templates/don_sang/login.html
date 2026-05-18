@@ -1,0 +1,38 @@
+{% extends 'don_sang/base.html' %}
+{% block title %}Connexion — Don de Sang{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <div class="card shadow-sm">
+        <div class="card-header text-white text-center py-3" style="background: linear-gradient(135deg,#c0392b,#e74c3c); border-radius:16px 16px 0 0;">
+          <h4 class="mb-0">🔐 Connexion</h4>
+        </div>
+        <div class="card-body p-4">
+          {% if error %}
+          <div class="alert alert-danger">{{ error }}</div>
+          {% endif %}
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nom d'utilisateur</label>
+              {{ form.username }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Mot de passe</label>
+              {{ form.password }}
+            </div>
+            <div class="d-grid">
+              <button type="submit" class="btn btn-blood btn-lg">Se connecter</button>
+            </div>
+          </form>
+          <hr>
+          <p class="text-center mb-0 text-muted small">
+            Pas encore de compte ? <a href="{% url 'register_don' %}" class="text-danger fw-semibold">S'inscrire</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

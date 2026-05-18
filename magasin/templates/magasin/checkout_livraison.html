@@ -1,0 +1,127 @@
+{% extends 'magasin/base.html' %}
+{% block title %}Livraison — Mon Magasin{% endblock %}
+{% block content %}
+<div class="container mt-4" style="max-width:900px;">
+
+  <!-- Étapes -->
+  <div class="d-flex align-items-center justify-content-center mb-4 gap-0">
+    <div class="text-center">
+      <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto fw-bold" style="width:36px;height:36px;">1</div>
+      <small class="text-primary fw-semibold">Livraison</small>
+    </div>
+    <div style="height:2px;width:80px;background:#dee2e6;"></div>
+    <div class="text-center">
+      <div class="rounded-circle bg-light text-muted d-flex align-items-center justify-content-center mx-auto" style="width:36px;height:36px;">2</div>
+      <small class="text-muted">Paiement</small>
+    </div>
+    <div style="height:2px;width:80px;background:#dee2e6;"></div>
+    <div class="text-center">
+      <div class="rounded-circle bg-light text-muted d-flex align-items-center justify-content-center mx-auto" style="width:36px;height:36px;">3</div>
+      <small class="text-muted">Confirmation</small>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-7">
+      <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt me-2 text-primary"></i>Adresse de livraison</h5>
+
+      <!-- Adresses enregistrées -->
+      {% if adresses %}
+      <div class="mb-4">
+        <p class="text-muted small mb-2">Vos adresses enregistrées :</p>
+        {% for adr in adresses %}
+        <form method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="choisir">
+          <input type="hidden" name="adresse_id" value="{{ adr.id }}">
+          <div class="card border rounded-3 mb-2 {% if adr.par_defaut %}border-primary{% endif %} hover-card">
+            <div class="card-body py-3 px-3 d-flex justify-content-between align-items-start">
+              <div>
+                {% if adr.par_defaut %}<span class="badge bg-primary mb-1">Par défaut</span>{% endif %}
+                <div class="fw-semibold">{{ adr.nom_complet }}</div>
+                <div class="text-muted small">{{ adr.adresse }}, {{ adr.ville }} {{ adr.code_postal }}</div>
+                <div class="text-muted small"><i class="bi bi-telephone me-1"></i>{{ adr.telephone }}</div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm ms-3 flex-shrink-0">
+                Choisir <i class="bi bi-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </form>
+        {% endfor %}
+        <hr class="my-3">
+        <p class="text-muted small">Ou entrez une nouvelle adresse :</p>
+      </div>
+      {% endif %}
+
+      <!-- Nouvelle adresse -->
+      <form method="POST" class="card border-0 shadow-sm rounded-4 p-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="nouvelle">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Nom complet *</label>
+            <input type="text" name="nom_complet" class="form-control" placeholder="Prénom Nom" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Téléphone *</label>
+            <input type="text" name="telephone" class="form-control" placeholder="Ex: 28 123 456" required>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Adresse complète *</label>
+            <textarea name="adresse" class="form-control" rows="2" placeholder="N° et nom de rue, appartement..." required></textarea>
+          </div>
+          <div class="col-7">
+            <label class="form-label small fw-semibold">Ville *</label>
+            <input type="text" name="ville" class="form-control" placeholder="Ex: Tunis" required>
+          </div>
+          <div class="col-5">
+            <label class="form-label small fw-semibold">Code postal *</label>
+            <input type="text" name="code_postal" class="form-control" placeholder="1000" required>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="sauvegarder" id="sauvegarder" checked>
+              <label class="form-check-label small" for="sauvegarder">
+                <i class="bi bi-bookmark me-1 text-primary"></i>Enregistrer cette adresse dans mon compte
+              </label>
+            </div>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary w-100 fw-semibold">
+              Continuer vers le paiement <i class="bi bi-arrow-right ms-1"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Résumé commande -->
+    <div class="col-md-5">
+      <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top:80px;">
+        <h6 class="fw-bold mb-3">Résumé de la commande</h6>
+        {% for ligne in commande.lignecommande_set.all %}
+        <div class="d-flex justify-content-between mb-1 small">
+          <span class="text-muted">{{ ligne.produit.libelle }} x{{ ligne.quantite }}</span>
+          <span>{{ ligne.sous_total }} DT</span>
+        </div>
+        {% endfor %}
+        <hr>
+        <div class="d-flex justify-content-between small text-muted mb-1">
+          <span>Sous-total</span><span>{{ commande.total_produits }} DT</span>
+        </div>
+        <div class="d-flex justify-content-between small text-muted mb-1">
+          <span><i class="bi bi-truck me-1"></i>Livraison à domicile</span>
+          <span>{{ commande.frais_livraison }} DT</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between fw-bold">
+          <span>Total</span><span class="text-success">{{ commande.total }} DT</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>.hover-card:hover { box-shadow: 0 4px 15px rgba(0,0,0,.1); transition:.2s; }</style>
+{% endblock %}
